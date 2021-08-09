@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:notes/main.dart';
-import 'package:notes/screens/add_note_page.dart';
+import '../main.dart';
+import 'add_note_page.dart';
 
 import 'note_info_page.dart';
 
@@ -10,7 +10,7 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  var title = "Home";
+  String title = 'Home';
 
   int index = 0;
 
@@ -27,11 +27,11 @@ class _MainPageState extends State<MainPage> {
             onPressed: () {
               print('menu');
             },
-            icon: Icon(Icons.menu),
+            icon: const Icon(Icons.menu),
           ),
           title: Text(
             title,
-            style: TextStyle(color: Colors.black),
+            style: const TextStyle(color: Colors.black),
           ),
           centerTitle: true,
           actions: <Widget>[
@@ -40,7 +40,7 @@ class _MainPageState extends State<MainPage> {
                 onPressed: () {
                   print('theme');
                 },
-                icon: Icon(Icons.invert_colors)),
+                icon: const Icon(Icons.invert_colors)),
           ],
         ),
         body: Center(child: buildPages()),
@@ -53,24 +53,24 @@ class _MainPageState extends State<MainPage> {
           */
           currentIndex: index,
           items: [
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.class_),
               label: 'Home',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.assignment),
               label: 'Daily',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.access_time),
               label: 'Timeline',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.explore),
               label: 'Explore',
             ),
           ],
-          onTap: (int index) => onNavBarTap(index),
+          onTap: onNavBarTap,
         ),
       );
 
@@ -82,7 +82,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   Widget buildFloatingActionButton() => FloatingActionButton(
-        child: Icon(
+        child: const Icon(
           Icons.add,
           color: Colors.white,
         ),
@@ -122,19 +122,19 @@ class _MainPageState extends State<MainPage> {
         child: Center(
           child: Expanded(
             child: Container(
-              margin: EdgeInsets.all(10),
+              margin: const EdgeInsets.all(10),
               height: 60,
               child: Container(
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: Colors.black12,
                     borderRadius: BorderRadius.all(Radius.circular(15)),
                   ),
                   child: Row(
                     children: [
                       Container(
-                          padding: EdgeInsets.only(left: 15),
-                          child: Icon(Icons.search)),
-                      Expanded(
+                          padding: const EdgeInsets.only(left: 15),
+                          child: const Icon(Icons.search)),
+                      const Expanded(
                         child: TextField(
                           style: TextStyle(color: Colors.black, fontSize: 16),
                           decoration: InputDecoration(
@@ -147,7 +147,8 @@ class _MainPageState extends State<MainPage> {
                         ),
                       ),
                     ],
-                  )),
+                  ),
+              ),
             ),
           ),
         ),
@@ -155,10 +156,9 @@ class _MainPageState extends State<MainPage> {
 
   Widget homeListView() => ListView.builder(
       itemCount: listOfElements.length,
-      itemBuilder: (_, int index) {
-        return Container(
-          child: ListTile(
-              contentPadding: EdgeInsets.all(5),
+      itemBuilder: (_, index) {
+        return ListTile(
+              contentPadding: const EdgeInsets.all(5),
               leading: CircleAvatar(
                   radius: 30,
                   child: Icon(
@@ -166,7 +166,7 @@ class _MainPageState extends State<MainPage> {
                     size: 30,
                   )),
               title: Text(listOfElements[index],
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   )),
@@ -178,7 +178,7 @@ class _MainPageState extends State<MainPage> {
                           title: listOfElements[index],
                           description: listOfDescriptions[index],
                         )));
-              }),
+              },
         );
       });
 

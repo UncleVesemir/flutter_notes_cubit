@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:notes/main.dart';
-
+import '../main.dart';
 import 'home_screen.dart';
 
 class AddNote extends StatefulWidget {
   @override
-  _AddNote createState() => _AddNote(Colors.grey);
+  _AddNote createState() => _AddNote(description: '', title: '', colorFAB: Colors.black12);
 }
 
 class _AddNote extends State<AddNote> {
-  var colorFAB;
-  var title;
-  var description;
+  Color colorFAB;
+  String title;
+  String description;
 
-  _AddNote(this.colorFAB);
+  _AddNote({required this.colorFAB, required this.title, required this.description});
 
   @override
   Widget build(BuildContext context) {
@@ -23,23 +22,23 @@ class _AddNote extends State<AddNote> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         leading: IconButton(
-            icon: Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back),
             color: Colors.black,
             onPressed: () {
               Navigator.pop(
                   context, MaterialPageRoute(builder: (context) => MainPage()));
             }),
-        title: Text(
+        title: const Text(
           'Add note',
           style: TextStyle(color: Colors.black),
         ),
       ),
       body: Column(children: <Widget>[
         Container(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: TextFormField(
               autofocus: true,
-              onChanged: (String text) {
+              onChanged: (text) {
                 if (text != '') {
                   setState(() {
                     title = text;
@@ -54,7 +53,7 @@ class _AddNote extends State<AddNote> {
               },
               keyboardType: TextInputType.text,
               maxLines: 1,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: 'Title of your note',
                 helperText: '*required field, keep it short',
@@ -66,19 +65,21 @@ class _AddNote extends State<AddNote> {
               ),
             )),
         Container(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: TextFormField(
               autofocus: false,
-              onChanged: (String text) {
+              onChanged: (text) {
                 setState(() {
-                  if (text != '')
+                  if (text != '') {
                     description = text;
-                  else
+                  }
+                  else {
                     description = '';
+                  }
                 });
               },
               keyboardType: TextInputType.text,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: 'Write something',
                 labelText: 'Description',
@@ -87,7 +88,7 @@ class _AddNote extends State<AddNote> {
             )),
       ]),
       floatingActionButton: FloatingActionButton(
-        child: Icon(
+        child: const Icon(
           Icons.check,
           color: Colors.white,
         ),

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 class NoteInfo extends StatelessWidget {
-  final title;
-  final description;
+  final String title;
+  final String description;
 
-  NoteInfo({this.title, this.description});
+  NoteInfo({required this.title, required this.description});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +13,7 @@ class NoteInfo extends StatelessWidget {
           title: Text(title),
         ),
         body: Container(
-          padding: EdgeInsets.all(16),
-            child: Text(description, style: TextStyle(fontSize: 18))));
+          padding: const EdgeInsets.all(16),
+            child: Text(description, style: const TextStyle(fontSize: 18))));
   }
 }

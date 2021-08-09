@@ -1,5 +1,5 @@
-import 'screens/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'screens/home_screen.dart';
 
 List<String> listOfElements = ['Weekend', 'Sleep', 'Sport'];
 List<String> listOfDescriptions = [
