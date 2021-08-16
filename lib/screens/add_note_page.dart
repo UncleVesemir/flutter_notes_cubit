@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../main.dart';
 import 'home_screen.dart';
 
 class AddNote extends StatefulWidget {
@@ -8,6 +7,7 @@ class AddNote extends StatefulWidget {
 }
 
 class _AddNote extends State<AddNote> {
+
   Color colorFAB;
   String title;
   String description;
@@ -96,8 +96,7 @@ class _AddNote extends State<AddNote> {
         onPressed: () {
           if (colorFAB == Colors.green) {
             setState(() {
-              listOfElements.add(title);
-              listOfDescriptions.add(description);
+              // Add data to notes
             });
             Navigator.pop(
                 context, MaterialPageRoute(builder: (context) => MainPage()));

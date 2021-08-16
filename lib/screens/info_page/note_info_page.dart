@@ -1,36 +1,199 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:notes/main.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
-import '../models/note_model.dart';
-
-List<_NoteTile> selectedNotes = [];
+import '../../main.dart';
+import '../../models/note_model.dart';
+import 'info_note_tile.dart';
 
 class NoteInfo extends StatefulWidget {
   final String title;
   final List<Note> listView;
+  final bool isEditMode;
+  final bool isMultiSelection;
 
-  NoteInfo({required this.title, required this.listView});
+  NoteInfo(
+      {required this.title,
+      required this.listView,
+      required this.isEditMode,
+      required this.isMultiSelection,
+      required Key key})
+      : super(key: key);
 
   @override
   _NoteInfo createState() => _NoteInfo();
 }
 
 class _NoteInfo extends State<NoteInfo> {
+  final ScrollController _scrollController = ScrollController();
+  final TextEditingController _textController = TextEditingController();
+
+  List<Note> activeNotes = [];
+  List<Note> allNotes = [];
+
+  bool isEditMode = false;
+  bool isMultiSelection = false;
+
+  bool isTextEditMode = false;
+
+  bool isBookmarkedNoteMode = false;
+
+  String inputText = '';
+  bool isTextTyped = false;
+
+  void moveToLastMessage() {
+    _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+  }
+
+  void deleteMessages() {
+    for (var element in activeNotes) {
+      allNotes.remove(element);
+    }
+    setState(() {});
+  }
+
+  void cancelEditMode() {
+    isEditMode = false;
+    isMultiSelection = false;
+    activeNotes.clear();
+    setState(() {});
+  }
+
+  void addToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    Scaffold.of(context)
+        .showSnackBar(const SnackBar(content: Text('text copied')));
+  }
+
+  void selectNotes(Note note) {
+    final isSelected = activeNotes.contains(note);
+    isSelected ? activeNotes.remove(note) : activeNotes.add(note);
+    isEditMode = activeNotes.isEmpty ? false : true;
+    isMultiSelection = activeNotes.length > 1 ? true : false;
+    setState(() {});
+  }
+
+  bool itContains(int index) {
+    return activeNotes.contains(allNotes.elementAt(index)) ? true : false;
+  }
+
+  void initText() {
+    _textController.addListener(() {
+      print('value: ${_textController.text}');
+      setState(() {
+        inputText = _textController.text;
+        if (inputText.isEmpty) {
+          isTextTyped = false;
+        } else {
+          isTextTyped = true;
+        }
+      });
+    });
+  }
+
+  @override
+  void initState() {
+    allNotes = widget.listView;
+    initText();
+    print(allNotes);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is removed from the
+    // widget tree.
+    _textController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0.0,
-        title: Text(widget.title),
-        centerTitle: true,
-      ),
+      appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(60), child: buildAppBar()),
       body: buildParam(),
     );
   }
 
+  Widget buildAppBar() {
+    final label = !isEditMode ? widget.title : '';
+    return AppBar(
+      elevation: 0.0,
+      centerTitle: true,
+      leading: isEditMode
+          ? IconButton(
+              icon: const Icon(Icons.cancel),
+              onPressed: cancelEditMode,
+            )
+          : IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+      title: Text(label),
+      actions: [
+        !isEditMode
+            ? IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: () {},
+              )
+            : Container(),
+        !isEditMode
+            ? IconButton(
+                icon: const Icon(Icons.bookmark_added),
+                onPressed: () {
+                  isBookmarkedNoteMode ? false : true;
+                },
+              )
+            : Container(),
+        isEditMode
+            ? IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () {
+                  deleteMessages();
+                  cancelEditMode();
+                },
+              )
+            : Container(),
+        isEditMode
+            ? IconButton(
+                icon: const Icon(Icons.bookmark_add),
+                onPressed: () {},
+              )
+            : Container(),
+        isEditMode
+            ? IconButton(
+                icon: const Icon(Icons.copy),
+                onPressed: () {
+                  var value = '';
+                  for(var element in activeNotes) {
+                    value += element.description;
+                  }
+                  addToClipboard(value);
+                  cancelEditMode();
+
+                },
+              )
+            : Container(),
+        isEditMode && !isMultiSelection
+            ? IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () {
+                  isTextEditMode = true;
+                  _textController.text = activeNotes[0].description;
+                },
+              )
+            : Container(),
+        const SizedBox(width: 8),
+      ],
+    );
+  }
+
   Widget buildParam() {
-    if (widget.listView[0].description == null) {
+    if (allNotes.isEmpty) {
       return noListView();
     } else {
       return withListView();
@@ -118,13 +281,35 @@ class _NoteInfo extends State<NoteInfo> {
       child: Container(
         margin: const EdgeInsets.all(10),
         child: ListView.builder(
-            reverse: true,
-            itemCount: notes[0].note?.length,
+            controller: _scrollController,
+            reverse: false,
+            itemCount: allNotes.length,
             itemBuilder: (context, index) {
               return NoteTile(
-                description: notes[0].note?[index].description ?? 'empty',
-                time: notes[0].note?[index].time ?? 0,
-                isSelected: true,
+                onSelectedNote: selectNotes,
+                onSelected: (value) {
+                  setState(
+                    () {
+                      activeNotes.contains(value)
+                          ? activeNotes.add(value)
+                          : activeNotes.remove(value);
+                    },
+                  );
+                  print(activeNotes);
+                },
+                onChangedMultiSelection: (value) {
+                  setState(() {
+                    isMultiSelection = value;
+                  });
+                },
+                onChangedEditMode: (value) {
+                  setState(() {
+                    isEditMode = value;
+                  });
+                },
+                note: allNotes[index],
+                isSelected: itContains(index),
+                isEditMode: isEditMode,
               );
             }),
       ),
@@ -136,15 +321,15 @@ class _NoteInfo extends State<NoteInfo> {
       alignment: Alignment.bottomCenter,
       child: ConstrainedBox(
         constraints: const BoxConstraints(
-          maxHeight: 55,
+          maxHeight: 60,
         ),
         child: Container(
           color: Colors.white,
           child: Row(
             children: <Widget>[
-              Container(
-                margin: const EdgeInsets.only(left: 8, right: 8),
-                child: const Icon(Icons.event),
+              IconButton(
+                icon: const Icon(Icons.event),
+                onPressed: () {},
               ),
               Flexible(
                 child: Container(
@@ -156,6 +341,7 @@ class _NoteInfo extends State<NoteInfo> {
                       borderRadius: BorderRadius.all(Radius.circular(10)),
                     ),
                     child: TextFormField(
+                      controller: _textController,
                       style: const TextStyle(color: Colors.black, fontSize: 16),
                       decoration: const InputDecoration(
                         // border: InputBorder.none,
@@ -171,72 +357,42 @@ class _NoteInfo extends State<NoteInfo> {
                   ),
                 ),
               ),
-              Container(
-                margin: const EdgeInsets.only(left: 8, right: 8),
-                child: const Icon(Icons.camera),
-              ),
+              !isTextTyped
+                  ? IconButton(
+                      icon: const Icon(Icons.camera_alt),
+                      onPressed: () {},
+                    )
+                  : IconButton(
+                      icon: const Icon(Icons.send),
+                      onPressed: () {
+                        if (!isTextEditMode) {
+                          addMessageToList();
+                          moveToLastMessage();
+                          setState(() {});
+                        } else {
+                          var index = allNotes.indexOf(activeNotes[0]);
+                          setState(() {
+                            allNotes[index].description = _textController.text;
+                          });
+                          _textController.text = '';
+                          isTextEditMode = false;
+                          cancelEditMode();
+                        }
+                      },
+                    ),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-class NoteTile extends StatefulWidget {
-  final String description;
-  final int time;
-  final bool isSelected;
-
-  NoteTile(
-      {required this.time,
-      required this.description,
-      required this.isSelected,
-      Key? key})
-      : super(key: key);
-
-  @override
-  _NoteTile createState() => _NoteTile();
-}
-
-class _NoteTile extends State<NoteTile> {
-  late bool isSelected;
-  late String description;
-
-  @override
-  void initState() {
-    super.initState();
-    description = widget.description;
-    isSelected = widget.isSelected;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: isSelected ? Colors.green[100] : Colors.transparent,
-      child: ListTile(
-        onLongPress: () {
-          setState(() {
-            if (isSelected == true) {
-              isSelected = false;
-              selectedNotes.remove(this);
-            } else {
-              isSelected = true;
-              selectedNotes.add(this);
-            }
-            print(selectedNotes);
-          });
-        },
-        leading: const Icon(Icons.sports),
-        title: Text(widget.description),
-        subtitle: Text(widget.time.toString()),
-        trailing: selectedNotes.contains(this)
-            ? const Icon(
-                Icons.check,
-                color: Colors.green,
-              )
-            : null,
-      ),
-    );
+  void addMessageToList() {
+    var now = DateTime.now();
+    var date = DateFormat('yyyy-MM-dd – kk:mm').format(now);
+    notes[0]
+        .note
+        ?.add(Note(isBookmarked: false, time: date, description: inputText));
+    _textController.text = '';
   }
 }
