@@ -1,133 +1,228 @@
 import 'package:flutter/material.dart';
-import 'package:notes/screens/add_note_page/add_note_page.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:notes/cubit/settings/settings_cubit.dart';
 
+import '../../cubit/home_screen/home_cubit.dart';
 import '../../main.dart';
+import '../../models/note_model.dart';
 import '../../routes/routes.dart';
+import '../../routes/routes.dart' as route;
 
-class BuildListView extends StatefulWidget {
-  @override
-  _BuildListView createState() => _BuildListView();
-}
+class BuildListView extends StatelessWidget {
+  BuildListView({Key? key}) : super(key: key);
+  late var textState;
 
-class _BuildListView extends State<BuildListView> {
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-        itemCount: notes.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            onLongPress: () {
-              showModalBottomSheet(
-                context: context,
-                builder: (context) => Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ListTile(
-                      leading: const Icon(
-                        Icons.info,
-                        color: Colors.green,
-                      ),
-                      title: const Text('Info'),
-                      onTap: () {
-                        showDialog<String>(
-                          context: context,
-                          builder: (context) => SimpleDialog(
-                            children: [
-                              ListTile(
-                                leading: CircleAvatar(
-                                  child: Icon(
-                                    listOfIcons[notes[index].iconIndex],
-                                  ),
-                                ),
-                                title: Text(
-                                  notes[index].title,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 25,
-                                  ),
-                                ),
-                              ),
-                              ListTile(
-                                title: const Text('Number of notes'),
-                                trailing:
-                                    Text(notes[index].note.length.toString()),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                    ListTile(
-                      leading: Icon(
-                        Icons.attach_file,
-                        color: Colors.green[300],
-                      ),
-                      title: const Text('Pin/Unpin Page'),
-                    ),
-                    const ListTile(
-                      leading: Icon(
-                        Icons.archive,
-                        color: Colors.orangeAccent,
-                      ),
-                      title: Text('Archive Page'),
-                    ),
-                    ListTile(
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          addNotePage,
-                          arguments: AddNote(
-                            title: notes[index].title,
-                            selectedIcon: notes[index].iconIndex,
-                            index: index,
-                          ),
-                        );
-                      },
-                      leading: const Icon(
-                        Icons.edit,
-                        color: Colors.blueAccent,
-                      ),
-                      title: const Text('Edit Page'),
-                    ),
-                    ListTile(
-                      onTap: () {
-                        notes.removeAt(index);
-                        Navigator.pop(context);
-                        setState(() {});
-                      },
-                      leading: const Icon(
-                        Icons.delete,
-                        color: Colors.redAccent,
-                      ),
-                      title: const Text('Delete Page'),
-                    ),
-                  ],
-                ),
-              );
-            },
-            contentPadding: const EdgeInsets.all(5),
-            leading: CircleAvatar(
-              radius: 30,
-              // backgroundColor: Colors.yellowAccent,
-              child: Icon(
-                listOfIcons[notes[index].iconIndex],
-                size: 30,
+    context.read<HomeCubit>().init();
+    textState =
+        BlocProvider.of<SettingsCubit>(context).state.textSize.toDouble();
+    return BlocBuilder<HomeCubit, HomeState>(
+      builder: (context, state) {
+        if (state.pages.isEmpty) {
+          return Center(
+            child: Text(
+              'Nothing to show',
+              style: TextStyle(
+                fontSize: textState,
               ),
             ),
-            title: Text(
-              notes[index].title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            subtitle: Text(notes[index].note.isNotEmpty
-                ? notes[index].note.last.description
-                : 'Entry event'),
-            onTap: () {
-              Navigator.of(context)
-                  .pushNamed(noteInfoPage, arguments: notes[index]);
-            },
           );
-        });
+        }
+        return ListView.builder(
+          itemCount: state.pages.length,
+          itemBuilder: (_, index) {
+            return ListTile(
+              onLongPress: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (context) => Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListTile(
+                        leading: const Icon(
+                          Icons.info,
+                          color: Colors.green,
+                        ),
+                        title: Text(
+                          'Info',
+                          style: TextStyle(
+                            fontSize: textState,
+                          ),
+                        ),
+                        onTap: () {
+                          showDialog<String>(
+                            context: context,
+                            builder: (context) => SimpleDialog(
+                              children: [
+                                ListTile(
+                                  leading: CircleAvatar(
+                                    child: Icon(
+                                      pagesIcons[state.pages[index].icon],
+                                    ),
+                                  ),
+                                  title: Text(
+                                    state.pages[index].title,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 25,
+                                    ),
+                                  ),
+                                ),
+                                ListTile(
+                                  title: Text(
+                                    'Number of notes',
+                                    style: TextStyle(
+                                      fontSize: textState,
+                                    ),
+                                  ),
+                                  trailing:
+                                      state.pages[index].lastMessage != null
+                                          ? Text(
+                                              state.pages[index].lastMessage!,
+                                              style: TextStyle(
+                                                fontSize: textState - 2,
+                                              ),
+                                            )
+                                          : Text(
+                                              'Entry event',
+                                              style: TextStyle(
+                                                fontSize: textState - 2,
+                                              ),
+                                            ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      ListTile(
+                        leading: Icon(
+                          Icons.attach_file,
+                          color: Colors.green[300],
+                        ),
+                        title: Text(
+                          'Pin/Unpin Page',
+                          style: TextStyle(
+                            fontSize: textState,
+                          ),
+                        ),
+                      ),
+                      ListTile(
+                        leading: const Icon(
+                          Icons.archive,
+                          color: Colors.orangeAccent,
+                        ),
+                        title: Text(
+                          'Archive Page',
+                          style: TextStyle(
+                            fontSize: textState,
+                          ),
+                        ),
+                      ),
+                      ListTile(
+                        onTap: () => _editPage(context, index),
+                        leading: const Icon(
+                          Icons.edit,
+                          color: Colors.blueAccent,
+                        ),
+                        title: Text(
+                          'Edit Page',
+                          style: TextStyle(
+                            fontSize: textState,
+                          ),
+                        ),
+                      ),
+                      ListTile(
+                        onTap: () {
+                          context.read<HomeCubit>()
+                            ..deletePage(
+                              index,
+                              state.pages[index].id!,
+                            );
+                          Navigator.pop(context);
+                        },
+                        leading: const Icon(
+                          Icons.delete,
+                          color: Colors.redAccent,
+                        ),
+                        title: Text(
+                          'Delete Page',
+                          style: TextStyle(
+                            fontSize: textState,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              contentPadding: const EdgeInsets.all(5),
+              tileColor: index == state.selectedPage &&
+                      BlocProvider.of<SettingsCubit>(context)
+                              .state
+                              .orientation !=
+                          Orientation.portrait
+                  ? Theme.of(context).backgroundColor.withAlpha(100)
+                  : null,
+              leading: CircleAvatar(
+                radius: 30,
+                // backgroundColor: Colors.yellowAccent,
+                child: Icon(
+                  pagesIcons[state.pages[index].icon],
+                  size: 30,
+                ),
+              ),
+              title: Text(
+                state.pages[index].title,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: textState + 2,
+                ),
+              ),
+              subtitle: state.pages[index].lastMessage != null
+                  ? Text(
+                      state.pages[index].lastMessage!,
+                      style: TextStyle(
+                        fontSize: textState - 2,
+                      ),
+                    )
+                  : Text(
+                      'Entry event',
+                      style: TextStyle(
+                        fontSize: textState - 2,
+                      ),
+                    ),
+              onTap: () async {
+                if (BlocProvider.of<SettingsCubit>(context).state.orientation ==
+                    Orientation.portrait && state.pages.isNotEmpty) {
+                  BlocProvider.of<HomeCubit>(context)
+                      .changeSelectedPage(index, context);
+                  Navigator.of(context).pushNamed(
+                    noteInfoPage,
+                    arguments: state.pages[index],
+                  );
+                } else {
+                  BlocProvider.of<HomeCubit>(context)
+                      .changeSelectedPage(index, context);
+                }
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+void _editPage(BuildContext context, int index) async {
+  final pagesCubit = context.read<HomeCubit>();
+  final pages = pagesCubit.state.pages;
+  final page = await Navigator.of(context).popAndPushNamed(
+    route.addNotePage,
+    arguments: pages[index],
+  );
+  if (page is PageCategoryInfo) {
+    pagesCubit.editPage(index, page);
   }
 }

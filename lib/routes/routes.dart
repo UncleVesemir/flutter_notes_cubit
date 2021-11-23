@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../models/note_model.dart';
 import '../screens/add_note_page/add_note_page.dart';
+import '../screens/event_page/note_info_page.dart';
 import '../screens/home_screen_page/home_screen.dart';
-import '../screens/info_page/note_info_page.dart';
 
 const String mainPage = 'mainPage';
 const String addNotePage = 'addNotePage';
@@ -14,24 +13,39 @@ Route<dynamic> controller(RouteSettings settings) {
 
   switch (settings.name) {
     case mainPage:
-      return MaterialPageRoute(builder: (context) => MainPage());
+      return MaterialPageRoute(
+        builder: (context) {
+          return MainPage();
+        },
+      );
     case addNotePage:
       if (args is AddNote) {
         return MaterialPageRoute(
-          builder: (context) => AddNote(
-            title: args.title,
-            selectedIcon: args.selectedIcon,
-            index: args.index,
-          ),
+          builder: (context) {
+            return AddNote(
+              // title: args.title,
+              // selectedIcon: args.selectedIcon,
+              // index: args.index,
+            );
+          },
         );
       } else {
         return MaterialPageRoute(
-          builder: (context) => AddNote(),
+          builder: (context) {
+            return AddNote();
+          },
         );
       }
     case noteInfoPage:
-      if (args is Journal) {
-        return MaterialPageRoute(builder: (context) => NoteInfo(journal: args));
+      if (args is NoteInfo) {
+        return MaterialPageRoute(
+          builder: (context) {
+            return NoteInfo(
+              // index: args.index,
+                // journal: args.journal,
+                );
+          },
+        );
       } else {
         throw ('Incorrect data');
       }
